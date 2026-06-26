@@ -1,0 +1,25 @@
+# Data configuration. Edit paths to where you downloaded the datasets.
+image_size: 224          # face crop size (square)
+jpeg_match_quality: 90   # re-encode ALL images at this JPEG quality (compression matching)
+
+paths:
+  raw_root: data/raw
+  crops_root: data/crops          # aligned/cropped + compression-matched faces go here
+  manifest: data/manifest.csv     # one row per image: path,label,generator,split
+
+# Logical datasets -> folders under raw_root. Fill these in as you download.
+sources:
+  real:        { dir: data/raw/ffhq_real,        label: 0, generator: real }
+  stylegan:    { dir: data/raw/140k_fake,         label: 1, generator: stylegan }
+  sd:          { dir: data/raw/sfhq_sd,           label: 1, generator: stable_diffusion }
+  sdxl:        { dir: data/raw/sfhq_t2i_sdxl,      label: 1, generator: sdxl }       # extension
+  flux:        { dir: data/raw/sfhq_t2i_flux,      label: 1, generator: flux }       # extension
+  dalle:       { dir: data/raw/sfhq_t2i_dalle,     label: 1, generator: dalle3 }     # extension
+
+splits:
+  train_generators: [stylegan]      # train on this generator family (+ real)
+  test_in_dist:     [stylegan]      # in-distribution test
+  test_unseen:      [sd]            # core unseen generator; add sdxl/flux/dalle as extension
+  val_fraction: 0.15
+  test_fraction: 0.15
+  seed: 13

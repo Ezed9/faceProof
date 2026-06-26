@@ -1,0 +1,19 @@
+# Experiment configuration
+seeds: [13, 37, 71]          # use [13] for the core; all three for the rigor pass
+
+conditions: [c1_resnet_probe, c4_clip_probe]      # core; add c2_resnet_finetune, c3_frequency
+
+corruptions:                 # RQ2 robustness sweep
+  jpeg_quality: [90, 70, 50, 30, 10]   # core sweep
+  resize_factor: [1.0, 0.5, 0.25]      # extension
+  blur_sigma:    [0.0, 1.0, 2.0]       # extension
+  noise_std:     [0.0, 5.0, 15.0]      # extension
+
+calibration:                 # RQ3 (extension)
+  enable: true
+  n_bins: 15
+  temperature_scaling: true
+
+bootstrap:
+  n_replicates: 2000         # CIs over images (cheap probe conditions)
+output_dir: reports

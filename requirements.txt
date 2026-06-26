@@ -1,0 +1,23 @@
+# Core
+numpy
+pandas
+scipy
+pillow
+tqdm
+pyyaml
+matplotlib
+scikit-learn
+
+# Deep learning (frozen feature extractors)
+torch
+torchvision
+open_clip_torch        # CLIP ViT-L/14 features
+
+# Face detection / alignment (Day 1 preprocessing)
+facenet-pytorch        # MTCNN; optional, code falls back to center-crop if unavailable
+
+# Calibration (Day 6, extension)
+netcal                 # ECE / reliability diagrams (optional)
+
+# Demo (Week 2)
+gradio
