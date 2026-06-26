@@ -112,12 +112,14 @@ faceproof/
 attack-then-defend mock → full degradation (keep JPEG) → C3 → C2 → 3rd generator → multi-seed/CIs.
 
 ## Current status
-**Day 1 — repo scaffolded.** Done: full repo structure, real preprocessing + leakage-check code,
-working starters for features/probe/metrics/corruptions/data, configs, README, HYPOTHESES, LICENSE,
-.gitignore. Hypotheses written.
-**Next actions:** (1) set up free Colab/Kaggle + Drive; (2) push to GitHub + clone in Colab;
-(3) download 140k + SFHQ Part 2, set paths in configs/data.yaml; (4) run preprocessing.py to make
-224×224 matched crops; (5) load/view a batch (Day 1 gate). Then Day 2: leakage check + CLIP features.
+**Day 1 — COMPLETE (2026-06-26).** Done: repo scaffolded + pushed to GitHub; 140k real+fake +
+SFHQ Part 2 (SD v1.4) downloaded to Drive; compression-matched preprocessing run (224×224,
+JPEG-90) via `src/preprocessing.py`; manifest + leakage-safe splits built (`src/data.py`);
+unseen generator (SD) confirmed test-only; Day 1 gate passed (matched real/fake batch loads).
+**Next actions (Day 2):** (1) run DCT leakage check (`src/leakage_check.py`) on ~500/class from
+crops — must be near chance before trusting any result; (2) extract + cache CLIP ViT-L/14
+features (`src/features.py`); (3) fit logistic probe on in-distribution data (Day 2 gate: in-dist
+AUROC > ~0.9).
 
 ## Key reference papers
 - Ojha, Li, Lee 2023 — *Towards Universal Fake Image Detectors...* (the anchor; arXiv 2302.10174).
