@@ -46,8 +46,10 @@ DALL-E); robustness sweep (JPEG core; resize/blur/noise extension); calibration 
 temperature scaling). Seeds [13, 37, 71]; bootstrap CIs over images.
 
 ## 7. Results
-- **Generalization gap (AUROC):** see `reports/table_auroc.md`. C1 in-dist [..] → SD [..] (gap [..]);
-  C4 in-dist [..] → SD [..] (gap [..]). [H1: CLIP gap </> ResNet gap.]
+- **Cross-generator generalization (RQ1/H1):** the primary metric is **AUROC on the unseen generator**
+  (higher = generalizes better). C4 CLIP [..] vs C1 ResNet [..] on SD → [H1 supported if CLIP higher].
+  We also report the in-dist−cross-gen *gap* as secondary context, noting it conflates baseline
+  in-distribution strength (a weak baseline can show a small gap). See `reports/table_auroc.md`.
 - **Robustness:** `reports/figures/robustness_jpeg.png`. AUROC at JPEG-90→10: C4 [..]→[..], C1 [..]→[..].
 - **Calibration:** `reports/table_calibration.md`. ECE in-dist vs unseen, before/after temperature.
 - **Uncertainty:** cross-gen AUROC CIs [..] (nb 07).
