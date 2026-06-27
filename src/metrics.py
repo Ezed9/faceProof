@@ -20,7 +20,10 @@ def eer(y_true, y_score) -> float:
 
 
 def expected_calibration_error(y_true, y_prob, n_bins: int = 15) -> float:
-    """ECE: weighted gap between confidence and accuracy across probability bins."""
+    """ECE for the positive-class probability: weighted gap between the mean predicted
+    P(class=1) and the empirical positive rate, binned by predicted probability. This is
+    self-consistent with a reliability diagram of predicted-prob (x) vs fraction-positive (y).
+    """
     y_true = np.asarray(y_true)
     y_prob = np.asarray(y_prob)
     bins = np.linspace(0.0, 1.0, n_bins + 1)
@@ -29,9 +32,9 @@ def expected_calibration_error(y_true, y_prob, n_bins: int = 15) -> float:
         m = (y_prob > lo) & (y_prob <= hi)
         if m.sum() == 0:
             continue
-        conf = y_prob[m].mean()
-        acc = (y_true[m] == (y_prob[m] >= 0.5)).mean()
-        ece += (m.sum() / len(y_prob)) * abs(conf - acc)
+        conf = y_prob[m].mean()        # mean predicted P(class=1) in this bin
+        frac_pos = y_true[m].mean()    # empirical fraction of positives in this bin
+        ece += (m.sum() / len(y_prob)) * abs(conf - frac_pos)
     return float(ece)
 
 
