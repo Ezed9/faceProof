@@ -1,0 +1,10 @@
+gradio
+torch
+torchvision
+open_clip_torch
+scikit-learn
+joblib
+pyyaml
+pillow
+numpy
+scipy
