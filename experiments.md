@@ -4,7 +4,12 @@ Fill in one row per run. This is your research notebook — keep it current.
 
 | Date | Run ID | Condition | Train gen | Test gen | Corruption | Seed | Metric | Value | Notes |
 |------|--------|-----------|-----------|----------|------------|------|--------|-------|-------|
-| 2026-06-?? | example | C4 (CLIP) | StyleGAN | StyleGAN (in-dist) | none | 13 | AUROC | 0.97 | sanity baseline |
+| 2026-06-28 | d3-c4-indist | C4 (CLIP)   | StyleGAN | StyleGAN (in-dist) | none      | 13 | AUROC | 0.997 | core, ~6k/class subset |
+| 2026-06-28 | d3-c1-indist | C1 (ResNet) | StyleGAN | StyleGAN (in-dist) | none      | 13 | AUROC | 0.876 | weaker baseline |
+| 2026-06-28 | d3-c4-sd     | C4 (CLIP)   | StyleGAN | SD (unseen)        | none      | 13 | AUROC | 0.907 | H1 metric (cross-gen) |
+| 2026-06-28 | d3-c1-sd     | C1 (ResNet) | StyleGAN | SD (unseen)        | none      | 13 | AUROC | 0.833 | CLIP > ResNet → H1 ✅ |
+| 2026-06-28 | d4-c4-sd-q10 | C4 (CLIP)   | StyleGAN | SD (unseen)        | JPEG q=10 | 13 | AUROC | ~0.82 | heavy compression |
+| 2026-06-28 | d4-c1-sd-q10 | C1 (ResNet) | StyleGAN | SD (unseen)        | JPEG q=10 | 13 | AUROC | ~0.64 | near failure regime |
 
 ## Daily log (3 lines/day: done / found / blocking)
 
@@ -13,7 +18,22 @@ Fill in one row per run. This is your research notebook — keep it current.
 - Found: preprocessing config: `image_size=224`, `jpeg_match_quality=90`. Both raw dataset folders confirmed in Drive. Manifest written to `data/manifest.csv`. Split counts: train (StyleGAN train pool), val (15%), test_indist (15%), test (SD, unseen-only).
 - Blocking: nothing — Day 2 (leakage check + CLIP feature extraction) is next.
 
-### Day 2 (TODO — fill after running notebooks 01 leakage cell, 02, 03)
-- Done: leakage check (DCT+SVM real vs StyleGAN, n=500/class) = ____ ; cached CLIP (768-d) + ResNet (2048-d) features to Drive; trained C4 probe, in-distribution AUROC = ____ .
+### Day 2 (2026-06-27)
+- Done: ran DCT+SVM leakage check (real vs StyleGAN, n=500/class) = ____ [confirm value from nb01 §8]; cached frozen CLIP (768-d) + ResNet (2048-d) features to Drive (`models/features/*.npy`); built/saved manifest with splits.
+- Found: features align with manifest (asserts pass; CLIP in-dist AUROC 0.997 later confirms alignment). In-distribution gate: C4 CLIP 0.997 > 0.90 ✅; C1 ResNet 0.876 (weaker baseline, expected).
+- Blocking: leakage value not recorded here — paste it from the notebook to close the Day 2 gate properly.
+
+### Day 3 (2026-06-28) — cross-generator (RQ1/H1)
+- Done: trained C1 + C4 logistic probes on `train` only (saved to `models/probes/`); evaluated in-dist (held-out StyleGAN) and cross-gen (unseen SD). Cross-gen AUROC: **C4 CLIP 0.907 vs C1 ResNet 0.833**.
+- Found: **H1 supported** — frozen CLIP generalizes to the unseen generator better (higher cross-gen AUROC). The in-dist−cross-gen "gap" is larger for CLIP (0.090 vs 0.043) but that conflates CLIP's near-perfect in-dist; report cross-gen AUROC as the primary metric, gap as context.
+- Blocking: single-seed, ~6k/class subset — Day 7 multi-seed + CIs needed before claiming the margin is robust.
+
+### Day 4 (2026-06-28) — robustness JPEG sweep (RQ2/H2)
+- Done: corrupted test images at JPEG q=[90,70,50,30,10], re-extracted features, scored saved probes; curve saved to `reports/figures/robustness_jpeg.png`.
+- Found: **H2 confirmed** — all four conditions degrade as quality drops. CLIP more robust than ResNet at every level; graceful decline to ~q30 then a cliff at q≤10 (ResNet/SD → ~0.64, near failure). At q=10, CLIP cross-gen (~0.82) > ResNet in-dist (~0.69) — roles invert under stress.
+- Blocking: low-quality tail is noisy (single seed; green CLIP/SD non-monotonic bump at q10 is noise, not a real effect).
+
+### Day 5 (TODO — multi-generator, run nb 05)
+- Done: download SFHQ-T2I (SDXL/Flux/DALL-E), preprocess, cache features, eval saved C1/C4 probes per generator → ≥2 unseen generators.
 - Found:
 - Blocking:
