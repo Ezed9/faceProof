@@ -10,6 +10,13 @@ Fill in one row per run. This is your research notebook — keep it current.
 | 2026-06-28 | d3-c1-sd     | C1 (ResNet) | StyleGAN | SD (unseen)        | none      | 13 | AUROC | 0.833 | CLIP > ResNet → H1 ✅ |
 | 2026-06-28 | d4-c4-sd-q10 | C4 (CLIP)   | StyleGAN | SD (unseen)        | JPEG q=10 | 13 | AUROC | ~0.82 | heavy compression |
 | 2026-06-28 | d4-c1-sd-q10 | C1 (ResNet) | StyleGAN | SD (unseen)        | JPEG q=10 | 13 | AUROC | ~0.64 | near failure regime |
+| 2026-06-28 | d6-c4-id-ece | C4 (CLIP)   | StyleGAN | StyleGAN (in-dist) | none      | 13 | ECE   | 0.020 | balanced; temp→0.009 |
+| 2026-06-28 | d6-c4-sd-ece | C4 (CLIP)   | StyleGAN | SD (unseen)        | none      | 13 | ECE   | 0.239 | balanced; temp→0.226 (no fix) — H3 |
+| 2026-06-28 | d6-c1-sd-ece | C1 (ResNet) | StyleGAN | SD (unseen)        | none      | 13 | ECE   | 0.203 | balanced; temp→0.053 |
+| 2026-06-28 | d5-c4-sdxl   | C4 (CLIP)   | StyleGAN | SDXL (unseen)      | none      | 13 | AUROC | 0.310 | below chance — detector blind |
+| 2026-06-28 | d5-c4-flux   | C4 (CLIP)   | StyleGAN | Flux (unseen)      | none      | 13 | AUROC | 0.411 | below chance |
+| 2026-06-28 | d5-c4-dalle  | C4 (CLIP)   | StyleGAN | DALL-E3 (unseen)   | none      | 13 | AUROC | 0.343 | below chance; n=1123 |
+| 2026-06-28 | d5-c1-sdxl   | C1 (ResNet) | StyleGAN | SDXL (unseen)      | none      | 13 | AUROC | 0.304 | below chance |
 
 ## Daily log (3 lines/day: done / found / blocking)
 
@@ -33,7 +40,12 @@ Fill in one row per run. This is your research notebook — keep it current.
 - Found: **H2 confirmed** — all four conditions degrade as quality drops. CLIP more robust than ResNet at every level; graceful decline to ~q30 then a cliff at q≤10 (ResNet/SD → ~0.64, near failure). At q=10, CLIP cross-gen (~0.82) > ResNet in-dist (~0.69) — roles invert under stress.
 - Blocking: low-quality tail is noisy (single seed; green CLIP/SD non-monotonic bump at q10 is noise, not a real effect).
 
-### Day 5 (TODO — multi-generator, run nb 05)
-- Done: download SFHQ-T2I (SDXL/Flux/DALL-E), preprocess, cache features, eval saved C1/C4 probes per generator → ≥2 unseen generators.
-- Found:
-- Blocking:
+### Day 5 (2026-06-28) — multi-generator (SFHQ-T2I: SDXL / Flux / DALL-E 3)
+- Done: evaluated saved C1/C4 probes on 3 unseen T2I generators vs held-out reals. AUROC (C4 CLIP / C1 ResNet): SDXL 0.310 / 0.304; FLUX1_schnell 0.411 / 0.273; DALLE3 0.343 / 0.182 — **all below 0.5**.
+- Found: **catastrophic generalization failure on modern T2I generators** — both detectors are blind/inverted (mean P(synthetic): reals 0.031 vs SDXL fakes 0.014 for CLIP; probe rates modern fakes as *more real than real*). Same probes/reals/preprocessing as Day 3 where SD v1.4 → 0.907, so the collapse is generator-driven (2022 diffusion detectable, 2023-24 T2I not). CLIP ≥ ResNet on every generator (H1 direction holds) but both unusable. Crops verified to be valid aligned faces.
+- Blocking: single seed; DALL-E n=1123 (noisy). Threat to validity: reals 256px-origin vs T2I 1024px-origin (constant across Day 3/5, so not the cause). Optional MTCNN-align re-run for extra rigor.
+
+### Day 6 (2026-06-28) — calibration (RQ3/H3), balanced 50/50 groups
+- Done: ECE + reliability + temperature scaling on balanced in-dist vs unseen-SD groups (n≈1770/1830). ECE: C4 CLIP 0.020 (in-dist) → 0.239 (cross-gen); C1 ResNet 0.162 → 0.203. Temperature (fit on val) fixes in-dist for both (CLIP→0.009, ResNet→0.047); on cross-gen it FAILS for CLIP (0.239→0.226) but helps ResNet (0.203→0.053, T≈7.9).
+- Found: **H3 supported** — CLIP near-perfectly calibrated in-distribution but ~12× worse on the unseen generator while keeping AUROC 0.89; in-dist temperature scaling does NOT repair CLIP's shift-induced miscalibration. Reliability: confident "real" calls on SD fakes (predicted≈0 → ~27% actually synthetic). Computed on BALANCED groups (cross-gen set was ~85% synthetic; imbalance had inflated raw ECE 0.39→0.24).
+- Blocking: single seed — Day 7 bootstrap CIs next. ResNet's temp improvement reflects uniform over-confidence (T≈7.9) but it stays the weaker detector.
