@@ -17,6 +17,8 @@ Fill in one row per run. This is your research notebook — keep it current.
 | 2026-06-28 | d5-c4-flux   | C4 (CLIP)   | StyleGAN | Flux (unseen)      | none      | 13 | AUROC | 0.411 | below chance |
 | 2026-06-28 | d5-c4-dalle  | C4 (CLIP)   | StyleGAN | DALL-E3 (unseen)   | none      | 13 | AUROC | 0.343 | below chance; n=1123 |
 | 2026-06-28 | d5-c1-sdxl   | C1 (ResNet) | StyleGAN | SDXL (unseen)      | none      | 13 | AUROC | 0.304 | below chance |
+| 2026-06-28 | d7-c4-sd-3s  | C4 (CLIP)   | StyleGAN | SD (unseen)        | none      | 13,37,71 | AUROC | 0.920±0.015 | 95% CI [0.897,0.915] |
+| 2026-06-28 | d7-c1-sd-3s  | C1 (ResNet) | StyleGAN | SD (unseen)        | none      | 13,37,71 | AUROC | 0.836±0.021 | 95% CI [0.818,0.848]; CIs disjoint → CLIP>ResNet sig |
 
 ## Daily log (3 lines/day: done / found / blocking)
 
@@ -39,6 +41,11 @@ Fill in one row per run. This is your research notebook — keep it current.
 - Done: corrupted test images at JPEG q=[90,70,50,30,10], re-extracted features, scored saved probes; curve saved to `reports/figures/robustness_jpeg.png`.
 - Found: **H2 confirmed** — all four conditions degrade as quality drops. CLIP more robust than ResNet at every level; graceful decline to ~q30 then a cliff at q≤10 (ResNet/SD → ~0.64, near failure). At q=10, CLIP cross-gen (~0.82) > ResNet in-dist (~0.69) — roles invert under stress.
 - Blocking: low-quality tail is noisy (single seed; green CLIP/SD non-monotonic bump at q10 is noise, not a real effect).
+
+### Day 7 (2026-06-28) — multi-seed + bootstrap CIs
+- Done: re-split + retrain probes over seeds [13,37,71]; bootstrap CIs (2000×, seed 13) on cross-gen AUROC. Cross-gen mean±std: C4 CLIP 0.920±0.015, C1 ResNet 0.836±0.021; in-dist C4 0.996±0.001, C1 0.872±0.004. Bootstrap 95% CI: CLIP [0.897,0.915], ResNet [0.818,0.848].
+- Found: results seed-stable (small std). **CLIP > ResNet cross-gen is significant** — 95% CIs disjoint (CLIP lower 0.897 > ResNet upper 0.848). H1 upgraded from directional to statistically supported. Core results now locked with uncertainty.
+- Blocking: only 3 seeds (±std is rough) but bootstrap corroborates. ✅
 
 ### Day 5 (2026-06-28) — multi-generator (SFHQ-T2I: SDXL / Flux / DALL-E 3)
 - Done: evaluated saved C1/C4 probes on 3 unseen T2I generators vs held-out reals. AUROC (C4 CLIP / C1 ResNet): SDXL 0.310 / 0.304; FLUX1_schnell 0.411 / 0.273; DALLE3 0.343 / 0.182 — **all below 0.5**.
