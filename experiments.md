@@ -19,6 +19,10 @@ Fill in one row per run. This is your research notebook — keep it current.
 | 2026-06-28 | d5-c1-sdxl   | C1 (ResNet) | StyleGAN | SDXL (unseen)      | none      | 13 | AUROC | 0.304 | below chance |
 | 2026-06-28 | d7-c4-sd-3s  | C4 (CLIP)   | StyleGAN | SD (unseen)        | none      | 13,37,71 | AUROC | 0.920±0.015 | 95% CI [0.897,0.915] |
 | 2026-06-28 | d7-c1-sd-3s  | C1 (ResNet) | StyleGAN | SD (unseen)        | none      | 13,37,71 | AUROC | 0.836±0.021 | 95% CI [0.818,0.848]; CIs disjoint → CLIP>ResNet sig |
+| 2026-06-29 | d8-c2-id     | C2 (ft ResNet) | StyleGAN | StyleGAN (in-dist) | none   | 13 | AUROC | 0.997 | fine-tuned end-to-end |
+| 2026-06-29 | d8-c2-sd     | C2 (ft ResNet) | StyleGAN | SD (unseen)        | none   | 13 | AUROC | 0.938 | beat frozen CLIP on SD |
+| 2026-06-29 | d8-c3-id     | C3 (DCT+SVM)   | StyleGAN | StyleGAN (in-dist) | none   | 13 | AUROC | 0.704 | frequency baseline |
+| 2026-06-29 | d8-c3-sd     | C3 (DCT+SVM)   | StyleGAN | SD (unseen)        | none   | 13 | AUROC | 0.630 | weak across shift |
 
 ## Daily log (3 lines/day: done / found / blocking)
 
@@ -56,3 +60,8 @@ Fill in one row per run. This is your research notebook — keep it current.
 - Done: ECE + reliability + temperature scaling on balanced in-dist vs unseen-SD groups (n≈1770/1830). ECE: C4 CLIP 0.020 (in-dist) → 0.239 (cross-gen); C1 ResNet 0.162 → 0.203. Temperature (fit on val) fixes in-dist for both (CLIP→0.009, ResNet→0.047); on cross-gen it FAILS for CLIP (0.239→0.226) but helps ResNet (0.203→0.053, T≈7.9).
 - Found: **H3 supported** — CLIP near-perfectly calibrated in-distribution but ~12× worse on the unseen generator while keeping AUROC 0.89; in-dist temperature scaling does NOT repair CLIP's shift-induced miscalibration. Reliability: confident "real" calls on SD fakes (predicted≈0 → ~27% actually synthetic). Computed on BALANCED groups (cross-gen set was ~85% synthetic; imbalance had inflated raw ECE 0.39→0.24).
 - Blocking: single seed — Day 7 bootstrap CIs next. ResNet's temp improvement reflects uniform over-confidence (T≈7.9) but it stays the weaker detector.
+
+### Day 8 (2026-06-29) — extensions: C2 fine-tuned ResNet + C3 DCT frequency
+- Done: C2 = ResNet-50 fine-tuned end-to-end (5 epochs, early-stop on val AUROC 0.997); C3 = DCT log-spectrum + linear SVM. AUROC in-dist / SD: C2 0.997 / 0.938; C3 0.704 / 0.630. All four conditions (C1–C4) now in results.csv.
+- Found: cross-gen (SD) ranking C2 0.938 > C4 CLIP 0.907 > C1 ResNet 0.833 > C3 0.630. **Prediction failed honestly:** fine-tuned C2 generalized to SD as well as / better than frozen CLIP — "fine-tuning hurts generalization" did NOT hold for the moderate StyleGAN→SD shift (likely: light 5-epoch tuning + moderate shift). C3 frequency baseline weak.
+- Blocking: C2/C3 NOT yet evaluated on far T2I generators (SDXL/Flux/DALL-E) — that is the decisive frozen-vs-finetuned generalization test; pending.
