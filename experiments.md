@@ -46,11 +46,6 @@ Fill in one row per run. This is your research notebook — keep it current.
 - Found: **H2 confirmed** — all four conditions degrade as quality drops. CLIP more robust than ResNet at every level; graceful decline to ~q30 then a cliff at q≤10 (ResNet/SD → ~0.64, near failure). At q=10, CLIP cross-gen (~0.82) > ResNet in-dist (~0.69) — roles invert under stress.
 - Blocking: low-quality tail is noisy (single seed; green CLIP/SD non-monotonic bump at q10 is noise, not a real effect).
 
-### Day 7 (2026-06-28) — multi-seed + bootstrap CIs
-- Done: re-split + retrain probes over seeds [13,37,71]; bootstrap CIs (2000×, seed 13) on cross-gen AUROC. Cross-gen mean±std: C4 CLIP 0.920±0.015, C1 ResNet 0.836±0.021; in-dist C4 0.996±0.001, C1 0.872±0.004. Bootstrap 95% CI: CLIP [0.897,0.915], ResNet [0.818,0.848].
-- Found: results seed-stable (small std). **CLIP > ResNet cross-gen is significant** — 95% CIs disjoint (CLIP lower 0.897 > ResNet upper 0.848). H1 upgraded from directional to statistically supported. Core results now locked with uncertainty.
-- Blocking: only 3 seeds (±std is rough) but bootstrap corroborates. ✅
-
 ### Day 5 (2026-06-28) — multi-generator (SFHQ-T2I: SDXL / Flux / DALL-E 3)
 - Done: evaluated saved C1/C4 probes on 3 unseen T2I generators vs held-out reals. AUROC (C4 CLIP / C1 ResNet): SDXL 0.310 / 0.304; FLUX1_schnell 0.411 / 0.273; DALLE3 0.343 / 0.182 — **all below 0.5**.
 - Found: **catastrophic generalization failure on modern T2I generators** — both detectors are blind/inverted (mean P(synthetic): reals 0.031 vs SDXL fakes 0.014 for CLIP; probe rates modern fakes as *more real than real*). Same probes/reals/preprocessing as Day 3 where SD v1.4 → 0.907, so the collapse is generator-driven (2022 diffusion detectable, 2023-24 T2I not). CLIP ≥ ResNet on every generator (H1 direction holds) but both unusable. Crops verified to be valid aligned faces.
@@ -61,7 +56,12 @@ Fill in one row per run. This is your research notebook — keep it current.
 - Found: **H3 supported** — CLIP near-perfectly calibrated in-distribution but ~12× worse on the unseen generator while keeping AUROC 0.89; in-dist temperature scaling does NOT repair CLIP's shift-induced miscalibration. Reliability: confident "real" calls on SD fakes (predicted≈0 → ~27% actually synthetic). Computed on BALANCED groups (cross-gen set was ~85% synthetic; imbalance had inflated raw ECE 0.39→0.24).
 - Blocking: single seed — Day 7 bootstrap CIs next. ResNet's temp improvement reflects uniform over-confidence (T≈7.9) but it stays the weaker detector.
 
+### Day 7 (2026-06-28) — multi-seed + bootstrap CIs
+- Done: re-split + retrain probes over seeds [13,37,71]; bootstrap CIs (2000×, seed 13) on cross-gen AUROC. Cross-gen mean±std: C4 CLIP 0.920±0.015, C1 ResNet 0.836±0.021; in-dist C4 0.996±0.001, C1 0.872±0.004. Bootstrap 95% CI: CLIP [0.897,0.915], ResNet [0.818,0.848].
+- Found: results seed-stable (small std). **CLIP > ResNet cross-gen is significant** — 95% CIs disjoint (CLIP lower 0.897 > ResNet upper 0.848). H1 upgraded from directional to statistically supported. Core results now locked with uncertainty.
+- Blocking: only 3 seeds (±std is rough) but bootstrap corroborates. ✅
+
 ### Day 8 (2026-06-29) — extensions: C2 fine-tuned ResNet + C3 DCT frequency
 - Done: C2 = ResNet-50 fine-tuned end-to-end (5 epochs, early-stop on val AUROC 0.997); C3 = DCT log-spectrum + linear SVM. AUROC in-dist / SD: C2 0.997 / 0.938; C3 0.704 / 0.630. All four conditions (C1–C4) now in results.csv.
 - Found: cross-gen (SD) ranking C2 0.938 > C4 CLIP 0.907 > C1 ResNet 0.833 > C3 0.630. **Prediction failed honestly:** fine-tuned C2 generalized to SD as well as / better than frozen CLIP — "fine-tuning hurts generalization" did NOT hold for the moderate StyleGAN→SD shift (likely: light 5-epoch tuning + moderate shift). C3 frequency baseline weak.
-- Blocking: C2/C3 NOT yet evaluated on far T2I generators (SDXL/Flux/DALL-E) — that is the decisive frozen-vs-finetuned generalization test; pending.
+- Limitation / future work: C2 (fine-tuned) and C3 (frequency) were evaluated on the StyleGAN→SD shift only, not on the far T2I generators (SDXL/Flux/DALL-E). Whether fine-tuning *also* collapses below chance there — the decisive frozen-vs-fine-tuned generalization test — is left as future work. (The frozen probes C1/C4 were tested on T2I in Day 5 and collapsed.)
