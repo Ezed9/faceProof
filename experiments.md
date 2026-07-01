@@ -65,6 +65,11 @@ Fill in one row per run. This is your research notebook — keep it current.
 - Found: results seed-stable (small std). **CLIP > ResNet cross-gen is significant** — 95% CIs disjoint (CLIP lower 0.897 > ResNet upper 0.848). H1 upgraded from directional to statistically supported. Core results now locked with uncertainty.
 - Blocking: only 3 seeds (±std is rough) but bootstrap corroborates. ✅
 
+### Day 9 (2026-06-29) — aggregate + freeze numbers
+- Done: built master tables from `results.csv` → `reports/table_auroc.md` (4 conditions × 5 generators) + `reports/table_calibration.md` (ECE before/after temp, C1/C4). All cells populated, no gaps.
+- Found: master AUROC table is the headline — strong in-dist + SD (C2 0.942 ≥ C4 0.907 > C1 0.834 > C3 0.630), universal below-chance collapse across ALL detectors on ALL three T2I generators (0.17–0.48). CLIP SD = 0.907 (full-set, seed 13).
+- Blocking: numbers FROZEN — no new experiments. Note: T2I "gap" columns not meaningful (below-chance = inverted); report raw T2I AUROC. ✅
+
 ### Day 8 (2026-06-29) — extensions: C2 fine-tuned ResNet + C3 DCT frequency
 - Done: C2 = ResNet-50 fine-tuned end-to-end; C3 = DCT log-spectrum + linear SVM (nb08 rebuilt to evaluate both on in-dist, SD, AND the three T2I generators). AUROC in-dist / SD: C2 0.996 / 0.942; C3 0.704 / 0.630. All four conditions now span every generator in results.csv.
 - Found (SD): C2 (fine-tuned) generalized to SD as well as / better than frozen CLIP (0.942 vs 0.907) — "fine-tuning hurts generalization" did NOT hold on the moderate StyleGAN→SD shift. C3 frequency baseline weak (0.63).
