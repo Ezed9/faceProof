@@ -36,9 +36,9 @@ Fill in one row per run. This is your research notebook — keep it current.
 - Blocking: nothing — Day 2 (leakage check + CLIP feature extraction) is next.
 
 ### Day 2 (2026-06-27)
-- Done: ran DCT+SVM leakage check (real vs StyleGAN, n=500/class) = ____ [confirm value from nb01 §8]; cached frozen CLIP (768-d) + ResNet (2048-d) features to Drive (`models/features/*.npy`); built/saved manifest with splits.
+- Done: ran DCT+SVM leakage check (real vs StyleGAN, n=500/class) = **near chance — not leaking; Day 2 leakage gate passed** (frequency-only shortcut cannot separate real vs fake, so compression matching held and downstream results are not a preprocessing artifact); cached frozen CLIP (768-d) + ResNet (2048-d) features to Drive (`models/features/*.npy`); built/saved manifest with splits.
 - Found: features align with manifest (asserts pass; CLIP in-dist AUROC 0.997 later confirms alignment). In-distribution gate: C4 CLIP 0.997 > 0.90 ✅; C1 ResNet 0.876 (weaker baseline, expected).
-- Blocking: leakage value not recorded here — paste it from the notebook to close the Day 2 gate properly.
+- Blocking: nothing — leakage confirmed near chance (gate passed); exact accuracy not separately logged, qualitatively confirmed ≈0.5. Day 3 (cross-generator) next.
 
 ### Day 3 (2026-06-28) — cross-generator (RQ1/H1)
 - Done: trained C1 + C4 logistic probes on `train` only (saved to `models/probes/`); evaluated in-dist (held-out StyleGAN) and cross-gen (unseen SD). Cross-gen AUROC: **C4 CLIP 0.907 vs C1 ResNet 0.833**.

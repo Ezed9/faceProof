@@ -30,11 +30,12 @@ def blur(img: Image.Image, sigma: float) -> Image.Image:
     return img.filter(ImageFilter.GaussianBlur(radius=sigma))
 
 
-def gaussian_noise(img: Image.Image, std: float) -> Image.Image:
+def gaussian_noise(img: Image.Image, std: float, seed: int | None = None) -> Image.Image:
     if std <= 0:
         return img
+    rng = np.random.default_rng(seed)  # seed the noise so the sweep is reproducible
     arr = np.asarray(img.convert("RGB"), dtype=np.float32)
-    arr = arr + np.random.normal(0, std, arr.shape)
+    arr = arr + rng.normal(0, std, arr.shape)
     return Image.fromarray(np.clip(arr, 0, 255).astype("uint8"))
 
 

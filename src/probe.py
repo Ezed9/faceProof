@@ -29,5 +29,7 @@ def train_probe(X_train: np.ndarray, y_train: np.ndarray, C: float = 1.0,
 
 
 def predict_proba(clf, X: np.ndarray) -> np.ndarray:
-    """Return P(class=1=synthetic)."""
-    return clf.predict_proba(X)[:, 1]
+    """Return P(class=1=synthetic). Assumes a binary probe (real vs synthetic)."""
+    proba = clf.predict_proba(X)
+    assert proba.shape[1] == 2, "predict_proba expects a binary (2-class) probe"
+    return proba[:, 1]

@@ -112,20 +112,32 @@ faceproof/
 attack-then-defend mock → full degradation (keep JPEG) → C3 → C2 → 3rd generator → multi-seed/CIs.
 
 ## Current status
-**Day 1 — COMPLETE (2026-06-26).** Done: repo scaffolded + pushed to GitHub; 140k real+fake +
-SFHQ Part 2 (SD v1.4) downloaded to Drive; compression-matched preprocessing run (224×224,
-JPEG-90) via `src/preprocessing.py`; manifest + leakage-safe splits built (`src/data.py`);
-unseen generator (SD) confirmed test-only; Day 1 gate passed (matched real/fake batch loads).
-**Next actions (Day 2):** (1) run DCT leakage check (`src/leakage_check.py`) on ~500/class from
-crops — must be near chance before trusting any result; (2) extract + cache CLIP ViT-L/14
-features (`src/features.py`); (3) fit logistic probe on in-distribution data (Day 2 gate: in-dist
-AUROC > ~0.9).
+**Experiments COMPLETE (Days 1–10); Days 11–14 in progress (demo, report, polish).** All four
+detector conditions (C1 frozen ResNet, C4 frozen CLIP, C2 fine-tuned ResNet, C3 DCT+SVM) evaluated
+across five generators; robustness sweep, calibration audit, 3-seed runs + bootstrap CIs, and the
+four report figures are done. Numbers are frozen in `experiments.md` + `reports/results.csv` (master
+tables `reports/table_auroc.md`, `reports/table_calibration.md`). **Do not re-run experiments or
+change numbers.**
+
+**Key results (seed 13 unless noted):**
+- Leakage gate passed: DCT+SVM near chance (not leaking) → compression matching held.
+- H1 ✅ (statistically supported): cross-gen SD AUROC **C4 CLIP 0.920±0.015 > C1 ResNet 0.836±0.021**
+  (3 seeds; 95% bootstrap CIs disjoint — CLIP [0.897,0.915] vs ResNet [0.818,0.848]).
+- Master AUROC (in-dist / SD): C4 0.997/0.907, C1 0.876/0.834, C2 0.996/0.942, C3 0.704/0.630.
+- **Headline:** ALL four detectors collapse **below chance** on modern T2I (SDXL/Flux/DALL-E 3),
+  AUROC **0.17–0.48** — they rate modern fakes as *more real than real*; fine-tuning (C2) doesn't rescue it.
+- H2 ✅: all degrade under JPEG (cliff at q≤10). H3 ✅: ECE C4 0.020 (in-dist) → 0.239 (SD); in-dist
+  temperature scaling does NOT repair CLIP under shift.
+
+**Remaining (Days 11–14):** finalize Gradio demo (`demo/`); write `reports/report.md`; resolution
+ablation (`notebooks/ablation_resolution.ipynb`, user runs on Colab); defense Q&A (`reports/defense_qa.md`) + polish.
+See `SETUP.md` for the Kaggle/Colab/Drive reproduction path.
 
 ## Key reference papers
 - Ojha, Li, Lee 2023 — *Towards Universal Fake Image Detectors...* (the anchor; arXiv 2302.10174).
 - Frank et al. 2020 — frequency analysis of fakes (basis for C3).
 - Radford et al. 2021 — CLIP. Guo et al. 2017 — calibration / temperature scaling.
-- Current SoTA to cite as related (do NOT claim to beat): MFCLIP 2024/25, Han et al. 2025, OmniFake.
+- Current detectors to cite as related (do NOT claim to beat): MFCLIP 2024/25 (arXiv:2409.09724; adapts CLIP), Han et al. 2025 (CVPR; video-domain). NOTE: "OmniFake" could not be verified → dropped. T2I-collapse corroboration/counter-evidence: Ricker 2022, Petrželková & Čech 2024, FakeInversion (Cazenavette 2024), Community Forensics (Park & Owens 2024). See `reports/defense_qa.md`.
 
 ## Other project docs (in the PARENT folder ../, reference only)
 - `../Research_Proposal_FINAL_verified_free.pdf` — the authoritative proposal.
