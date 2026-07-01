@@ -21,17 +21,33 @@ import torch
 import yaml
 from PIL import Image
 
-ROOT = Path(__file__).resolve().parent.parent
-PROBE_PATH = ROOT / "models" / "probes" / "c4_clip.joblib"
-TEMP_PATH = ROOT / "models" / "probes" / "c4_clip_temperature.json"  # optional {"T": <float>}
+# Resolve artifacts whether app.py runs from the repo (demo/app.py -> repo root holds models/) or
+# from a Hugging Face Space root (app.py + models/ side by side). First existing candidate wins.
+_HERE = Path(__file__).resolve().parent
+_ROOTS = [_HERE, _HERE.parent]
+
+
+def _find(rel: str) -> Path:
+    for base in _ROOTS:
+        p = base / rel
+        if p.exists():
+            return p
+    return _ROOTS[0] / rel  # default location (may not exist yet)
+
+
+PROBE_PATH = _find("models/probes/c4_clip.joblib")
+TEMP_PATH = _find("models/probes/c4_clip_temperature.json")  # optional {"T": <float>}
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 
 
 def _load_clip() -> tuple[torch.nn.Module, callable]:
-    cfg = yaml.safe_load(open(ROOT / "configs" / "model.yaml"))["clip"]
-    model, _, preprocess = open_clip.create_model_and_transforms(
-        cfg["backbone"], pretrained=cfg["pretrained"]
-    )
+    cfg_path = _find("configs/model.yaml")
+    if cfg_path.exists():
+        clip_cfg = yaml.safe_load(open(cfg_path))["clip"]
+        backbone, pretrained = clip_cfg["backbone"], clip_cfg["pretrained"]
+    else:
+        backbone, pretrained = "ViT-L-14", "openai"  # C4 defaults (match src/features.py)
+    model, _, preprocess = open_clip.create_model_and_transforms(backbone, pretrained=pretrained)
     model = model.to(DEVICE).eval()
     return model, preprocess
 
