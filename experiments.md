@@ -23,6 +23,10 @@ Fill in one row per run. This is your research notebook — keep it current.
 | 2026-06-29 | d8-c2-sd     | C2 (ft ResNet) | StyleGAN | SD (unseen)        | none   | 13 | AUROC | 0.938 | beat frozen CLIP on SD |
 | 2026-06-29 | d8-c3-id     | C3 (DCT+SVM)   | StyleGAN | StyleGAN (in-dist) | none   | 13 | AUROC | 0.704 | frequency baseline |
 | 2026-06-29 | d8-c3-sd     | C3 (DCT+SVM)   | StyleGAN | SD (unseen)        | none   | 13 | AUROC | 0.630 | weak across shift |
+| 2026-06-29 | d8-c2-sdxl   | C2 (ft ResNet) | StyleGAN | SDXL (unseen)      | none   | 13 | AUROC | 0.484 | below chance |
+| 2026-06-29 | d8-c2-flux   | C2 (ft ResNet) | StyleGAN | Flux (unseen)      | none   | 13 | AUROC | 0.322 | below chance |
+| 2026-06-29 | d8-c2-dalle  | C2 (ft ResNet) | StyleGAN | DALL-E3 (unseen)   | none   | 13 | AUROC | 0.170 | below chance; meanP_fake≈0 |
+| 2026-06-29 | d8-c3-t2i    | C3 (DCT+SVM)   | StyleGAN | SDXL/Flux/DALL-E   | none   | 13 | AUROC | 0.35–0.37 | below chance |
 
 ## Daily log (3 lines/day: done / found / blocking)
 
@@ -62,6 +66,6 @@ Fill in one row per run. This is your research notebook — keep it current.
 - Blocking: only 3 seeds (±std is rough) but bootstrap corroborates. ✅
 
 ### Day 8 (2026-06-29) — extensions: C2 fine-tuned ResNet + C3 DCT frequency
-- Done: C2 = ResNet-50 fine-tuned end-to-end (5 epochs, early-stop on val AUROC 0.997); C3 = DCT log-spectrum + linear SVM. AUROC in-dist / SD: C2 0.997 / 0.938; C3 0.704 / 0.630. All four conditions (C1–C4) now in results.csv.
-- Found: cross-gen (SD) ranking C2 0.938 > C4 CLIP 0.907 > C1 ResNet 0.833 > C3 0.630. **Prediction failed honestly:** fine-tuned C2 generalized to SD as well as / better than frozen CLIP — "fine-tuning hurts generalization" did NOT hold for the moderate StyleGAN→SD shift (likely: light 5-epoch tuning + moderate shift). C3 frequency baseline weak.
-- Limitation / future work: C2 (fine-tuned) and C3 (frequency) were evaluated on the StyleGAN→SD shift only, not on the far T2I generators (SDXL/Flux/DALL-E). Whether fine-tuning *also* collapses below chance there — the decisive frozen-vs-fine-tuned generalization test — is left as future work. (The frozen probes C1/C4 were tested on T2I in Day 5 and collapsed.)
+- Done: C2 = ResNet-50 fine-tuned end-to-end; C3 = DCT log-spectrum + linear SVM (nb08 rebuilt to evaluate both on in-dist, SD, AND the three T2I generators). AUROC in-dist / SD: C2 0.996 / 0.942; C3 0.704 / 0.630. All four conditions now span every generator in results.csv.
+- Found (SD): C2 (fine-tuned) generalized to SD as well as / better than frozen CLIP (0.942 vs 0.907) — "fine-tuning hurts generalization" did NOT hold on the moderate StyleGAN→SD shift. C3 frequency baseline weak (0.63).
+- Found (T2I) — **decisive**: C2 AND C3 also collapse BELOW CHANCE on modern T2I. C2 AUROC SDXL 0.484 / Flux 0.322 / DALL-E3 0.170 (mean P(synthetic) on fakes ≈ 0.000 — ~100% sure they are real); C3 ≈ 0.35–0.37. **Conclusion:** no detector — frozen CLIP/ResNet, fine-tuned ResNet, or DCT frequency — survives modern text-to-image faces; fine-tuning does not rescue generalization. The failure is universal across detector design.
