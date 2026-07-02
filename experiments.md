@@ -84,3 +84,13 @@ Fill in one row per run. This is your research notebook — keep it current.
 - Done: ran `notebooks/ablation_resolution.ipynb` — re-preprocessed T2I fakes through a 256px intermediate (matching FFHQ real origin) before the 224/JPEG-90 pipeline; re-scored the saved seed-13 C4/C1 probes vs held-out reals. AUROC orig→matched: C4 CLIP SDXL 0.310→0.289 / Flux 0.411→0.379 / DALL-E3 0.343→0.335; C1 ResNet SDXL 0.304→0.310 / Flux 0.273→0.283 / DALL-E3 0.182→0.192.
 - Found: **below-chance collapse is NOT a resolution artifact** — matched AUROC stays far below 0.5 on every generator (CLIP if anything slightly lower under matching). Resolution asymmetry ruled out as the cause; collapse is generator-driven. Saved to `reports/ablation_resolution.md` (Drive).
 - Blocking: single seed (reuses seed-13 probes); diagnostic only — does not touch frozen `results.csv`. ✅
+
+### Council review fixes (2026-07-02) — code/doc only, no numbers changed
+- Done: fixed ECE bin-edge in `src/metrics.py` (first bin now includes p=0.0 exactly; previously
+  predictions underflowing to 0.0 were silently excluded — asymmetric vs p=1.0, which was included).
+- Note: the frozen Day-6 ECE values were computed **before** this fix, on in-dist/SD groups where
+  exact-0.0 predictions are rare, so they likely change little if at all; any future ECE on T2I groups
+  (where mean P(synthetic)≈0.000) MUST use the fixed version. Also clarified in `reports/report.md`:
+  H1's bootstrap CI is within-seed-13 (eval-sampling variance) while ±std is across 3 seeds (training
+  variance) — two complementary analyses; and added the content-distribution confound to Threats to
+  Validity as disclosed-untested (`defense_qa.md` Q19).

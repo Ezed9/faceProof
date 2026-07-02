@@ -17,8 +17,9 @@ framed as a biometric enrollment-screening control.*
 We audit frozen-feature detectors of AI-generated **faces** as a biometric security control
 (screening synthetic-identity injection at enrollment). Reproducing Ojha et al. (2023)
 directionally, a frozen **CLIP** ViT-L/14 probe (C4) generalizes to an unseen *near* generator
-(Stable Diffusion v1.4) better than a frozen ImageNet **ResNet-50** probe (C1): AUROC **0.92 vs 0.84**
-with disjoint 95% bootstrap confidence intervals over three seeds. The headline finding is a
+(Stable Diffusion v1.4) better than a frozen ImageNet **ResNet-50** probe (C1): AUROC **0.92 vs 0.84**,
+stable across three seeds, with non-overlapping 95% bootstrap CIs (computed within the seed-13
+evaluation). The headline finding is a
 reliability failure: on **modern text-to-image** generators (SDXL, Flux, DALL·E 3), **all four**
 detectors we test — frozen CLIP (C4), frozen ResNet (C1), a fine-tuned ResNet (C2), and a DCT
 frequency baseline (C3) — collapse to **below-chance AUROC (0.17–0.48)**, systematically scoring
@@ -151,14 +152,19 @@ bootstrap CIs):
 | C4 CLIP  | 0.996 ± 0.001 | **0.920 ± 0.015** | [0.897, 0.915] |
 | C1 ResNet| 0.872 ± 0.004 | 0.836 ± 0.021 | [0.818, 0.848] |
 
-The CIs do not overlap (CLIP lower bound 0.897 > ResNet upper bound 0.848), so **H1 is supported**. We
-report cross-gen AUROC as the primary metric rather than the in-dist−cross-gen *gap*: the gap conflates
+The CIs do not overlap (CLIP lower bound 0.897 > ResNet upper bound 0.848), so **H1 is supported**.
+Note these are two *complementary* uncertainty analyses, not one: the ±std quantifies seed-to-seed
+training variance (3 re-splits/retrains), while the bootstrap CI quantifies evaluation-sampling
+variance over images *within the seed-13 run* (2000 resamples) — the CI is not computed across seeds.
+We report cross-gen AUROC as the primary metric rather than the in-dist−cross-gen *gap*: the gap conflates
 baseline in-distribution strength (a weak baseline shows a small gap and looks deceptively robust).
 See `reports/figures/crossgen_auroc.png`.
 
 ### 7.2 Master table: four detectors × five generators
 
-Single-seed (seed 13), full-set AUROC:
+Single-seed (seed 13), full-set AUROC. (Hence small differences from the 3-seed means in §7.1 — e.g.
+C1 in-dist reads 0.876 here (seed-13 run) vs 0.872 ± 0.004 there (3-seed mean); same quantity, two
+measurements.)
 
 | Condition | In-dist (StyleGAN) | SD v1.4 (near) | SDXL | Flux | DALL·E 3 |
 |-----------|:---:|:---:|:---:|:---:|:---:|
@@ -168,6 +174,7 @@ Single-seed (seed 13), full-set AUROC:
 | **C3** DCT + SVM          | 0.704 | 0.630 | 0.35–0.37 † | 0.35–0.37 † | 0.35–0.37 † |
 
 † C3 on the three T2I generators was logged as a single range (0.35–0.37), not per-generator.
+C1/SD is 0.834 in the frozen Day-9 aggregate; the Day-3 log entry rounds the same run to 0.833.
 Chance = 0.50. (Master markdown table also at `reports/table_auroc.md`.)
 
 **Reading the table.** Two regimes:
@@ -219,7 +226,7 @@ feature extraction (CLIP / ResNet) → logistic probe → AUROC / EER / ECE acro
 
 ## 8. Threats to validity
 
-- **Resolution asymmetry (internal) — tested and ruled out.** Reals originate at ~256px (FFHQ) and
+- **Resolution asymmetry (internal) — tested; this one artifact ruled out.** Reals originate at ~256px (FFHQ) and
   T2I fakes at ~1024px, so the classes reach the 224px crop through different downscaling. We test this
   directly with `notebooks/ablation_resolution.ipynb`, which re-preprocesses T2I fakes through a 256px
   intermediate (matching the reals' origin) and re-scores the saved seed-13 probes. **The below-chance
@@ -227,7 +234,19 @@ feature extraction (CLIP / ResNet) → logistic probe → AUROC / EER / ECE acro
   0.310→0.289, Flux 0.411→0.379, DALL·E 3 0.343→0.335; C1 ResNet: 0.304→0.310, 0.273→0.283,
   0.182→0.192) — if anything CLIP drops slightly under matching. So resolution asymmetry is **not** the
   cause; the collapse is generator-driven. This is consistent with the asymmetry being *constant*
-  across the SD (≈0.9) and T2I (below-chance) evaluations.
+  across the SD (≈0.9) and T2I (below-chance) evaluations. The ablation controls for *this one*
+  artifact — it does not exclude every non-generator explanation (see the next threat).
+- **Content-distribution confound (internal/external) — disclosed, untested.** FFHQ reals are
+  photographic, incidentally-posed Flickr faces; SFHQ-T2I fakes are *prompt-generated* and plausibly
+  skew toward idealized, well-lit, prototypical compositions (and possibly a narrower demographic
+  range). A detector keying on content statistics correlated with the StyleGAN-vs-FFHQ boundary could
+  produce the below-chance inversion without any generator-fingerprint story — indeed, our own
+  mechanism hypothesis (§7.2; Miller et al. 2023) effectively names this pathway. We did **not** test
+  it (a content-matched subset evaluation would be needed). Two things survive the concession: the
+  same probes score ≈0.91 on SD v1.4 through the identical pipeline, so something generator-linked
+  changed between 2022- and 2024-era models; and the *security* conclusion is unaffected either way —
+  whatever the cause, the control confidently passes exactly the images an attacker would submit.
+  Only the mechanistic interpretation narrows.
 - **Single-seed for the surprising claim.** The below-chance T2I numbers, the calibration numbers, and
   C2 are single-seed; only H1 carries multi-seed + bootstrap CIs. The most surprising result is the
   one without multi-seed confirmation — stated plainly.
