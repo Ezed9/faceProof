@@ -77,6 +77,21 @@ _EXAMPLES = (
 )
 
 
+def _compression_match(img: Image.Image, size: int = 224, quality: int = 90) -> Image.Image:
+    """Replicate the experiment pipeline (src/preprocessing.py, inlined so the Space needs no src/):
+    square center-crop -> 224px -> JPEG-90 re-encode. Every training/eval image went through this,
+    so uploads must too — otherwise the probe sees a compression history it was never trained on."""
+    img = img.convert("RGB")
+    w, h = img.size
+    side = min(w, h)
+    left, top = (w - side) // 2, (h - side) // 2
+    img = img.crop((left, top, left + side, top + side)).resize((size, size), Image.BICUBIC)
+    buf = io.BytesIO()
+    img.save(buf, format="JPEG", quality=quality)
+    buf.seek(0)
+    return Image.open(buf).convert("RGB")
+
+
 @torch.no_grad()
 def _embed(img: Image.Image) -> np.ndarray:
     x = _PREPROCESS(img.convert("RGB")).unsqueeze(0).to(DEVICE)
@@ -88,11 +103,12 @@ def _embed(img: Image.Image) -> np.ndarray:
 def classify(img: Image.Image) -> tuple[dict, str]:
     if img is None:
         return {}, "Upload a face image."
-    feat = _embed(img)
+    feat = _embed(_compression_match(img))  # same 224/JPEG-90 pipeline as the experiments
     logit = float(_PROBE.decision_function(feat)[0])
     p_synth = float(1.0 / (1.0 + np.exp(-logit / _T)))  # temperature-calibrated
     label = "SYNTHETIC (flagged)" if p_synth >= 0.5 else "real (passed)"
-    note = ("Confidence is temperature-calibrated. Reliability degrades on generators unseen in "
+    note = ("Input is compression-matched (224px, JPEG-90) exactly like the training data. "
+            "Confidence is temperature-calibrated. Reliability degrades on generators unseen in "
             "training and under heavy compression — treat near-0.5 scores as 'needs review'.")
     return {"synthetic": p_synth, "real": 1 - p_synth}, f"**{label}**\n\n{note}"
 
