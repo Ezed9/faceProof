@@ -219,12 +219,15 @@ feature extraction (CLIP / ResNet) → logistic probe → AUROC / EER / ECE acro
 
 ## 8. Threats to validity
 
-- **Resolution asymmetry (internal).** Reals originate at ~256px (FFHQ) and T2I fakes at ~1024px, so
-  the classes reach the 224px crop through different downscaling. We test this directly with
-  `notebooks/ablation_resolution.ipynb`, which re-preprocesses T2I fakes through a 256px intermediate
-  (matching the reals) and re-scores the saved probes; the below-chance result is reported as robust
-  only insofar as it survives that control. The asymmetry is *constant* across the SD (≈0.9) and T2I
-  (below-chance) evaluations, so it cannot by itself explain why SD is detectable and SDXL is not.
+- **Resolution asymmetry (internal) — tested and ruled out.** Reals originate at ~256px (FFHQ) and
+  T2I fakes at ~1024px, so the classes reach the 224px crop through different downscaling. We test this
+  directly with `notebooks/ablation_resolution.ipynb`, which re-preprocesses T2I fakes through a 256px
+  intermediate (matching the reals' origin) and re-scores the saved seed-13 probes. **The below-chance
+  collapse survives the control**: matched AUROC stays far below 0.5 on every generator (C4 CLIP: SDXL
+  0.310→0.289, Flux 0.411→0.379, DALL·E 3 0.343→0.335; C1 ResNet: 0.304→0.310, 0.273→0.283,
+  0.182→0.192) — if anything CLIP drops slightly under matching. So resolution asymmetry is **not** the
+  cause; the collapse is generator-driven. This is consistent with the asymmetry being *constant*
+  across the SD (≈0.9) and T2I (below-chance) evaluations.
 - **Single-seed for the surprising claim.** The below-chance T2I numbers, the calibration numbers, and
   C2 are single-seed; only H1 carries multi-seed + bootstrap CIs. The most surprising result is the
   one without multi-seed confirmation — stated plainly.
