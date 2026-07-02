@@ -79,3 +79,8 @@ Fill in one row per run. This is your research notebook — keep it current.
 - Done: generated 4 report figures → `reports/figures/` — system diagram, cross-generator AUROC bars, JPEG robustness curve, reliability diagrams. Fixed the bar-chart y-axis (was starting at 0.4 and clipping the below-chance T2I bars) → now 0–1 with a 0.5 chance line, generators ordered in-dist→T2I.
 - Found: headline bar chart now shows the contrast clearly (green in-dist/SD vs all-below-chance T2I). Reliability diagrams show C4 CLIP miscalibrated on SD (above diagonal) vs near-diagonal in-dist — matches H3.
 - Blocking: reliability figure axis labels cosmetic (say accuracy/confidence; data is fraction-positive vs predicted-prob). ✅
+
+### Day 11 (2026-07-02) — resolution ablation (threat-to-validity control)
+- Done: ran `notebooks/ablation_resolution.ipynb` — re-preprocessed T2I fakes through a 256px intermediate (matching FFHQ real origin) before the 224/JPEG-90 pipeline; re-scored the saved seed-13 C4/C1 probes vs held-out reals. AUROC orig→matched: C4 CLIP SDXL 0.310→0.289 / Flux 0.411→0.379 / DALL-E3 0.343→0.335; C1 ResNet SDXL 0.304→0.310 / Flux 0.273→0.283 / DALL-E3 0.182→0.192.
+- Found: **below-chance collapse is NOT a resolution artifact** — matched AUROC stays far below 0.5 on every generator (CLIP if anything slightly lower under matching). Resolution asymmetry ruled out as the cause; collapse is generator-driven. Saved to `reports/ablation_resolution.md` (Drive).
+- Blocking: single seed (reuses seed-13 probes); diagnostic only — does not touch frozen `results.csv`. ✅
