@@ -68,6 +68,14 @@ _MODEL, _PREPROCESS = _load_clip()
 _PROBE = joblib.load(PROBE_PATH)
 _T = _load_temperature()
 
+# Optional click-to-try examples: any images dropped in examples/ (next to app.py, or at a Space root).
+# Only existing files are listed, so an empty folder is fine — the app never errors on missing examples.
+_EX_DIR = _find("examples")
+_EXAMPLES = (
+    [[str(p)] for p in sorted(_EX_DIR.glob("*")) if p.suffix.lower() in {".jpg", ".jpeg", ".png"}]
+    if _EX_DIR.exists() else []
+)
+
 
 @torch.no_grad()
 def _embed(img: Image.Image) -> np.ndarray:
@@ -98,6 +106,9 @@ with gr.Blocks(title="FaceProof — synthetic-face auditor") as demo:
             out_lab = gr.Label(label="Probability")
             out_txt = gr.Markdown()
     inp.change(classify, inputs=inp, outputs=[out_lab, out_txt])
+    if _EXAMPLES:
+        gr.Examples(examples=_EXAMPLES, inputs=inp,
+                    label="Try these — a real face, a StyleGAN fake (flagged), and a modern-T2I fake (slips through)")
 
 
 if __name__ == "__main__":
