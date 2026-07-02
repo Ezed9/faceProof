@@ -47,11 +47,19 @@ def bootstrap_ci(y_true, y_score, metric_fn=auroc, n: int = 2000, seed: int = 13
     y_score = np.asarray(y_score)
     point = metric_fn(y_true, y_score)
     vals = []
+    skipped = 0
     idx = np.arange(len(y_true))
     for _ in range(n):
         b = rng.choice(idx, size=len(idx), replace=True)
         if len(np.unique(y_true[b])) < 2:
+            skipped += 1          # metric undefined on a single-class resample
             continue
         vals.append(metric_fn(y_true[b], y_score[b]))
+    if not vals:
+        raise ValueError(
+            "bootstrap_ci: every resample was single-class — eval set too small or too imbalanced for a CI"
+        )
+    if skipped > 0.05 * n:
+        print(f"[bootstrap_ci] warning: {skipped}/{n} resamples skipped (single-class); CI from {len(vals)}")
     lo, hi = np.percentile(vals, [2.5, 97.5])
     return point, float(lo), float(hi)

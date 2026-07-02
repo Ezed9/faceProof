@@ -1,23 +1,27 @@
+# Pinned to major-version bounds for reproducibility (see SETUP.md).
 # Core
-numpy
-pandas
-scipy
-pillow
-tqdm
-pyyaml
-matplotlib
-scikit-learn
+numpy>=1.24,<3
+pandas>=2,<3
+scipy>=1.10,<2
+pillow>=9,<12
+tqdm>=4,<5
+pyyaml>=6,<7
+matplotlib>=3.7,<4
+scikit-learn>=1.3,<2
 
 # Deep learning (frozen feature extractors)
-torch
-torchvision
-open_clip_torch        # CLIP ViT-L/14 features
+torch>=2,<3
+torchvision>=0.15,<1
+open_clip_torch>=2.20,<3   # CLIP ViT-L/14 features
 
 # Face detection / alignment (Day 1 preprocessing)
-facenet-pytorch        # MTCNN; optional, code falls back to center-crop if unavailable
+facenet-pytorch>=2.5,<3    # MTCNN; optional, code falls back to center-crop if unavailable
 
 # Calibration (Day 6, extension)
-netcal                 # ECE / reliability diagrams (optional)
+netcal>=1.3,<2             # ECE / reliability diagrams (optional)
 
 # Demo (Week 2)
-gradio
+gradio>=4,<6
+
+# Tests
+pytest>=7,<9
