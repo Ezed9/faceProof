@@ -28,8 +28,10 @@ def expected_calibration_error(y_true, y_prob, n_bins: int = 15) -> float:
     y_prob = np.asarray(y_prob)
     bins = np.linspace(0.0, 1.0, n_bins + 1)
     ece = 0.0
-    for lo, hi in zip(bins[:-1], bins[1:]):
-        m = (y_prob > lo) & (y_prob <= hi)
+    for i, (lo, hi) in enumerate(zip(bins[:-1], bins[1:])):
+        # First bin includes its left edge so predictions of exactly 0.0 are counted
+        # (an unclipped sigmoid can underflow to 0.0 for very confident "real" calls).
+        m = ((y_prob >= lo) if i == 0 else (y_prob > lo)) & (y_prob <= hi)
         if m.sum() == 0:
             continue
         conf = y_prob[m].mean()        # mean predicted P(class=1) in this bin

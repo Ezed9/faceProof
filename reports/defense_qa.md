@@ -126,14 +126,15 @@ DCT+SVM leakage probe on real vs StyleGAN scored **near chance** — a frequency
 separate the classes, so compression isn't a label proxy. Splits are source/identity-disjoint and
 unseen generators are test-only (Rule #3).
 
-**Q13. The reals are ~256px (FFHQ) and the T2I fakes are ~1024px. Is the below-chance collapse just a resolution mismatch?**
-This is the strongest methodological threat and we address it head-on with
-`notebooks/ablation_resolution.ipynb`: it re-preprocesses the T2I fakes through a 256px intermediate
-(matching the reals' origin) before the standard 224/JPEG-90 pipeline and re-scores the saved probes.
-If AUROC stays below chance under matched resolution, the collapse is not a resolution artifact; if it
-jumps toward 0.5, resolution asymmetry contributed. **We will report whichever the ablation shows.**
-Note the asymmetry was *constant* across Day-3 (SD ≈0.9) and Day-5 (T2I below chance) evals, so it
-can't by itself explain why SD is detectable and SDXL isn't — but the ablation makes this rigorous.
+**Q13. The reals are ~256px (FFHQ) and the T2I fakes are ~1024px. Was the below-chance collapse just a resolution mismatch?**
+No — we tested it head-on with `notebooks/ablation_resolution.ipynb`: the T2I fakes were
+re-preprocessed through a 256px intermediate (matching the reals' origin) before the standard
+224/JPEG-90 pipeline, and the saved seed-13 probes re-scored. **The collapse survived the control**:
+matched AUROC stayed far below chance on every generator (C4 CLIP SDXL 0.310→0.289, Flux 0.411→0.379,
+DALL·E 3 0.343→0.335; C1 ResNet 0.304→0.310, 0.273→0.283, 0.182→0.192) — if anything CLIP dropped
+slightly. Also note the asymmetry was *constant* across Day-3 (SD ≈0.9) and Day-5 (T2I below chance)
+evals, so it never could explain by itself why SD is detectable and SDXL isn't. **Precision caveat:**
+this rules out the resolution artifact specifically, not every non-generator explanation — see Q19.
 
 **Q14. Which "real" faces are paired with the T2I fakes?**
 Held-out FFHQ reals (label 0, `split == test_indist`) — not training images, and the *same* real pool
@@ -174,6 +175,18 @@ then show — with a robustness and calibration audit — that every detector we
 fine-tuned ResNet, DCT frequency) collapses below chance and becomes confidently wrong on modern
 text-to-image faces, which is a reliability failure that matters for enrollment screening."
 
+**Q19. Couldn't the collapse just be that T2I faces differ in *content* — demographics, pose,
+lighting, "idealized" prompt aesthetics — rather than in generator fingerprint?**
+Partly untestable with our data, and we concede it up front: the resolution ablation rules out one
+artifact, not content shift. FFHQ reals are incidental Flickr photographs; SFHQ-T2I fakes are
+prompt-generated and plausibly more prototypical/well-lit — and our own mechanism hypothesis (Q3,
+Miller et al. 2023) effectively names that pathway. We did not run a content-matched evaluation. Two
+things survive the concession. First, the same probes score ≈0.91 on SD v1.4 through the identical
+pipeline, so *something* generator-linked changed between 2022- and 2024-era models. Second — the
+security point — for an enrollment screen the distinction doesn't matter operationally: an attacker
+submits whatever the newest generator produces, content and all, and the control confidently passes
+it. The scientific mechanism narrows; the security conclusion doesn't.
+
 ---
 
 ## Counter-evidence to be ready for (steelman the other side)
@@ -184,5 +197,6 @@ text-to-image faces, which is a reliability failure that matters for enrollment 
 
 ## Weaknesses we volunteer before being asked
 Single training GAN family; ~6k/class subset; single-seed for T2I/calibration/C2 (only H1 is multi-seed + CI);
-DALL·E 3 n=1123; resolution asymmetry (mitigated by the ablation); only JPEG in the robustness results;
-frozen-CLIP is a floor, not SoTA; the mechanism for below-chance inversion is inferred, not demonstrated.
+DALL·E 3 n=1123; resolution asymmetry (tested — ruled out by the ablation); content-distribution
+confound (disclosed, untested — Q19); only JPEG in the robustness results; frozen-CLIP is a floor,
+not SoTA; the mechanism for below-chance inversion is inferred, not demonstrated.
