@@ -65,4 +65,21 @@ Recommended: run on free Google Colab (T4) or Kaggle (P100). Cache features to D
 Full schedule: see `../Execution_Plan_2weeks.md`.
 
 ## Status
-🟡 Day 1 — repo scaffolded. Preprocessing + leakage check implemented; features/probe/metrics are working starters to extend.
+**Experiments complete (Days 1–10); report + demo in progress (Days 11–14).** All four detector
+conditions evaluated across five generators, with a robustness sweep, calibration audit, multi-seed
+runs, bootstrap CIs, and figures. Full log: [`experiments.md`](experiments.md); write-up:
+[`reports/report.md`](reports/report.md); reproduction setup: [`SETUP.md`](SETUP.md).
+
+### Headline results (trained on one GAN family — StyleGAN; seed 13 unless noted)
+- **RQ1 / H1 — CLIP generalizes better to a *near* unseen generator (SD v1.4):** frozen CLIP (C4)
+  **AUROC ≈ 0.92** vs frozen ImageNet ResNet (C1) **≈ 0.84**; 95% bootstrap CIs disjoint (3 seeds).
+- **Headline failure — *all four* detectors collapse *below chance* on modern text-to-image faces**
+  (SDXL / Flux / DALL·E 3): AUROC **0.17–0.48** — they rate modern fakes as *more real than real*.
+  Fine-tuning the backbone (C2) does **not** rescue it; the failure is universal across detector design.
+- **RQ2 / H2 — robustness:** every condition degrades under JPEG compression, with a cliff at quality ≤ 10.
+- **RQ3 / H3 — calibration:** ECE rises from **≈ 0.02** (in-distribution) to **≈ 0.24** on the unseen
+  generator, and in-distribution temperature scaling does **not** repair CLIP's shift-induced
+  over-confidence — the core security-reliability finding.
+
+> Directional reproduction: one training GAN family, ~6k images/class subset, single-seed for non-core
+> conditions — see the report's *Threats to Validity*. Not a state-of-the-art claim.
